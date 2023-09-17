@@ -185,7 +185,8 @@ const subirImagen = async (req, res) => {
         if (!articuloActualizado) {
           return res.status(400).json({
             status: "error",
-            mensaje: "No se encontró el artículo o no se pudo actualizar con la imagen.",
+            mensaje:
+              "No se encontró el artículo o no se pudo actualizar con la imagen.",
           });
         }
 
@@ -193,7 +194,8 @@ const subirImagen = async (req, res) => {
           status: "success",
           file: req.file,
           archivo_split: archivo_split,
-          mensaje: "La imagen se ha subido con éxito y se ha vinculado al artículo.",
+          mensaje:
+            "La imagen se ha subido con éxito y se ha vinculado al artículo.",
         });
       } catch (error) {
         return res.status(500).json({
@@ -237,6 +239,38 @@ const imagen = (req, res) => {
   });
 };
 
+const buscador = async (req, res) => {
+  try {
+    const busqueda = req.params.busqueda;
+
+    const articulosEncontrados = await Articulo.find({
+      $or: [
+        { titulo: { $regex: busqueda, $options: "i" } },
+        { contenido: { $regex: busqueda, $options: "i" } },
+      ],
+    }).sort({ fecha: -1 });
+
+    if (!articulosEncontrados || articulosEncontrados.length === 0) {
+      return res.status(404).json({
+        status: "error",
+        mensaje: "No se encontraron artículos que coincidan con la búsqueda",
+      });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      resultados: articulosEncontrados.length,
+      articulos: articulosEncontrados,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      mensaje: "Error al buscar artículos",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   crear,
   listar,
@@ -245,4 +279,5 @@ module.exports = {
   editarArticulo,
   subirImagen,
   imagen,
+  buscador,
 };
